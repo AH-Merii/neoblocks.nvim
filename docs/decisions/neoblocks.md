@@ -55,9 +55,16 @@ Compared against snacks.nvim (882c996) and AH-Merii/claude-plugins on 2026-10-14
 - Workflows: read-only token at the top, write granted per job (release only); actions pinned to a commit SHA with
   `persist-credentials: false`; Dependabot bumps the pins weekly after a 7-day cooldown, with `ci:` titles so a bump
   cuts no release.
-- gitleaks on each PR's commits and the full history on main; locally a pre-push hook (installed by `mise run setup`
-  as a stub, not `core.hooksPath`, which would switch off GitButler's own hooks) and an agent hook before
-  `but commit`.
+- gitleaks on each PR's commits and the full history on main; locally an agent hook before `but commit`, and the
+  pre-push hook below.
+- Locally, `.githooks/pre-push` runs `check:all`'s checks, with gitleaks on just the pushed commits. `mise run setup`
+  sets `core.hooksPath`, the one hook location both `git push` and `but push` run (GitButler's `pre_push()` runs only
+  a hook file, never a git-config hook: `crates/gitbutler-repo/src/hooks.rs` at 2d95f37). That needs a GitButler
+  build that keeps its own guard hooks in git config (gitbutlerapp/gitbutler#14698, nightly until the next release):
+  earlier builds wrote them into `.git/hooks`, which `core.hooksPath` switches off. The first version installed a
+  stub into `.git/hooks` instead, to leave those alone.
+- Agents read AGENTS.md (CLAUDE.md links to it), which starts with `mise run setup`, and Claude Code sessions get a
+  reminder when it hasn't run.
 - CodeQL default setup (the `actions` language: it has no Lua), secret scanning with push protection, private
   vulnerability reporting (SECURITY.md), and a ruleset on main: ci-ok required, linear history, no force push or
   deletion; the docs App is the only bypass.

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Scans the commits a push adds for secrets: the last local gate, and one GitButler
-# runs (`but push` skips it only with --no-verify). `mise run setup` installs it.
+# Runs CI's checks before a push: on the working tree, then gitleaks on the commits
+# the push adds. git and GitButler (`but push`) both run it through core.hooksPath,
+# which `mise run setup` sets; --no-verify skips it.
 # Git passes "<local ref> <local sha> <remote ref> <remote sha>" lines on stdin.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
@@ -14,6 +15,9 @@ while read -r _ sha _ _; do
 done
 # No ref lines (a tool that doesn't pass them): scan everything unpushed instead.
 [ "$refs" -gt 0 ] || tips=(HEAD)
+
+# As check:all: the type check is left to CI, it's too heavy to run locally.
+mise run -q check:fmt ::: check:lint ::: check:test ::: check:docs ::: check:workflows </dev/null
 [ ${#tips[@]} -gt 0 ] || exit 0
 
 # What the push adds: commits not yet on any of the remote's branches.

@@ -8,12 +8,18 @@ Every check is a [mise](https://mise.jdx.dev) task, each pinning its own tools, 
 in CI.
 
 ```sh
-mise run setup            # once: install the pre-push secret scan
+mise run setup            # once per clone: pushes run the checks first
 mise run check:all        # every check CI runs, except the type check (CI only: it's heavy)
 mise run check:test       # the tests; NVIM=nightly mise run check:test for nightly
 mise run fmt              # format with stylua
 mise tasks                # everything else
 ```
+
+Hooks don't come with a clone, so `mise run setup` points git at `.githooks/` (`core.hooksPath`). Its pre-push hook
+runs `check:all`'s checks, with gitleaks on just the pushed commits, for `git push` and `but push` alike. With
+GitButler, use a build that keeps its own hooks in git config (nightly, until a release has
+[gitbutlerapp/gitbutler#14698](https://github.com/gitbutlerapp/gitbutler/pull/14698)); setup tells you if yours
+doesn't.
 
 ## Adding a module
 
