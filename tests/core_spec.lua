@@ -1,6 +1,6 @@
 -- setup(), options, the on/off switches and :Neoblocks, checked with stand-in modules on 'runtimepath'
 local dir = vim.fn.tempname()
-local calls = {} ---@type table<string, integer[]> module -> setup calls; refresh buffers
+local calls = {} ---@type table<string, { setup?: integer, refresh: (integer|string)[] }> setup() and refresh() calls
 
 --- A module file in a temp dir that counts its setup() and refresh() calls.
 local function module(name)
@@ -78,6 +78,7 @@ test("a second setup() is refused and starts nothing again", function()
   local nb = reset()
   nb.setup({ alpha = {} })
   local notified
+  ---@diagnostic disable-next-line: duplicate-set-field
   vim.notify = function(msg, level) notified = { msg, level } end
   nb.setup({ alpha = {}, beta = {} })
   eq(1, calls.alpha.setup)
@@ -157,6 +158,7 @@ test(":Neoblocks refuses unknown modules and actions, and modules setup() left o
   local nb = reset()
   nb.setup({ alpha = {} })
   local errors = {}
+  ---@diagnostic disable-next-line: duplicate-set-field
   vim.notify = function(msg, level)
     if level == vim.log.levels.ERROR then
       errors[#errors + 1] = msg

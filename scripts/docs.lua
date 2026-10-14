@@ -39,7 +39,7 @@ end
 ---@return neoblocks.docs.Module
 local function parse(path, name, prefix)
   local lines = vim.fn.readfile(path)
-  local mod = { name = name, prefix = prefix, intro = {}, fns = {} } ---@type neoblocks.docs.Module
+  local mod = { name = name, prefix = prefix, desc = "", intro = {}, fns = {} } ---@type neoblocks.docs.Module
   local i = 1
   while lines[i] and lines[i]:match("^%-%-%-") and not lines[i]:match("^%-%-%-%s*@") do
     mod.intro[#mod.intro + 1] = (lines[i]:gsub("^%-%-%- ?", ""))
