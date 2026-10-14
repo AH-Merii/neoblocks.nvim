@@ -1,20 +1,53 @@
 #!/usr/bin/env bash
-# Scans the commits a push adds for secrets: the last local gate, and one GitButler
-# runs (`but push` skips it only with --no-verify). `mise run setup` installs it.
-# Git passes "<local ref> <local sha> <remote ref> <remote sha>" lines on stdin.
+# Runs CI's checks on each pushed commit, so a push that passes here passes CI.
+# `mise run setup` installs it; git and `but push` both run it.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 remote=$1
-refs=0 tips=()
+tips=()
 while read -r _ sha _ _; do
-  refs=$((refs + 1))
-  # An all-zero sha deletes the remote branch: nothing to scan.
+  # An all-zero sha deletes the remote branch: nothing to check.
   [[ $sha =~ ^0+$ ]] || tips+=("$sha")
 done
-# No ref lines (a tool that doesn't pass them): scan everything unpushed instead.
-[ "$refs" -gt 0 ] || tips=(HEAD)
 [ ${#tips[@]} -gt 0 ] || exit 0
 
-# What the push adds: commits not yet on any of the remote's branches.
-exec mise run -q check:secrets "${tips[@]}" --not --remotes="$remote" </dev/null
+# Commits not on main yet; their subjects stand in for the PR title CI checks.
+new=("${tips[@]}")
+git rev-parse -q --verify "$remote/main" >/dev/null && new+=(--not "$remote/main")
+
+git log --format=%s "${new[@]}" | while IFS= read -r subject; do
+  out=$(mise run -q check:title "$subject" </dev/null) || { echo "$out" >&2; exit 1; }
+done
+mise run -q check:secrets "${new[@]}" </dev/null
+
+# For zizmor's online audits, as in CI.
+GH_TOKEN=${GH_TOKEN:-$(gh auth token 2>/dev/null || true)}
+export GH_TOKEN
+# Caps the type check's memory where systemd can.
+cap=()
+if systemd-run --user --scope -q true 2>/dev/null; then
+  cap=(systemd-run --user --scope -q -p MemoryMax=1G -p MemorySwapMax=0 --)
+fi
+
+export TMPDIR=${XDG_CACHE_HOME:-$HOME/.cache}/neoblocks
+mkdir -p "$TMPDIR"
+for tip in "${tips[@]}"; do
+  # A copy of the commit's files: GitButler's working tree mixes in other branches.
+  copy=$(mktemp -d)
+  trap 'rm -rf "$copy"' EXIT
+  git archive "$tip" | tar -x -C "$copy"
+  (
+    cd "$copy"
+    git init -q # actionlint looks for the repo root
+    export MISE_TRUSTED_CONFIG_PATHS=$copy
+    mise run -q check:fmt ::: check:lint ::: check:docs ::: check:workflows </dev/null
+    NVIM=0.12.6 mise run -q check:test </dev/null
+    NVIM=nightly mise run -q check:test </dev/null
+    "${cap[@]}" mise run -q check:types </dev/null
+  ) || {
+    echo "pre-push: $(git log -1 --format='%h %s' "$tip") fails the checks above" >&2
+    exit 1
+  }
+  rm -rf "$copy"
+done
