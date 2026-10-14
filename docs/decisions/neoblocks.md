@@ -49,6 +49,10 @@ Compared against snacks.nvim (882c996) and AH-Merii/claude-plugins on 2026-10-14
 - One version for the repo, not one per module: lazy.nvim's `version` only reads tags like `v1.2.3`
   (`lazy/manage/semver.lua:86`), so per-module tags (`colors-v0.1.0`) would be invisible to it.
 - The version is also written to `M.version` in `lua/neoblocks/init.lua`, shown by `:checkhealth neoblocks`.
+- Releases start at 0.1.0 and stay below 1.0 until the API settles: `bump-minor-pre-major` makes a breaking change
+  bump the minor. The first release comes from `initial-version`: with no release tag yet, release-please ignores the
+  manifest's `0.0.0` and falls back to it, or to 1.0.0 without it (`src/strategies/base.ts:756-761` in
+  googleapis/release-please).
 
 ## 5. Security
 
