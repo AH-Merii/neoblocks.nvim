@@ -1,6 +1,6 @@
-# neoblocks.nvim
+<h1 align="center"><img src="assets/neoblocks-wordmark.svg" alt="Neoblocks" width="600"></h1>
 
-Small, fast replacements for Neovim plugins, each off until you turn it on.
+<p align="center">Small, fast replacements for Neovim plugins, each off until you turn it on.</p>
 
 ## Modules
 
