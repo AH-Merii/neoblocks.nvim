@@ -36,8 +36,8 @@ Compared against snacks.nvim (882c996) and AH-Merii/claude-plugins on 2026-10-14
 
 - Shaped like claude-plugins: `mise-tasks/check/<name>`, each pinning its own tools in its `#MISE` header; CI has one
   job per task and a `ci-ok` job that passes only when all did, the one check the main ruleset requires.
-- Checks: stylua, selene (plus no debug output in `lua/`/`plugin/`, as snacks' `dd(` check), lua-language-server (CI
-  only: too heavy for the dev machine), tests on Neovim stable and nightly, the docs generator, the PR title, gitleaks
+- Checks: stylua, selene (plus no debug output in `lua/`/`plugin/`, as snacks' `dd(` check), lua-language-server (in CI
+  and the pre-push hook, not `check:all`), tests on Neovim stable and nightly, the docs generator, the PR title, gitleaks
   and zizmor + actionlint.
 - Tests: `nvim -l tests/run.lua`, no dependencies and offline; each spec file runs in its own `nvim --clean`. snacks'
   runner downloads lazy.nvim when it isn't installed (`tests/minit.lua:6-10`).
@@ -57,7 +57,11 @@ Compared against snacks.nvim (882c996) and AH-Merii/claude-plugins on 2026-10-14
   cuts no release.
 - gitleaks on each PR's commits and the full history on main; locally an agent hook before `but commit`, and the
   pre-push hook below.
-- Locally, `.githooks/pre-push` runs `check:all`'s checks, with gitleaks on just the pushed commits. `mise run setup`
+- Locally, `.githooks/pre-push` runs CI's checks on what a push sends, so a push that passes it passes CI: each
+  pushed commit is checked in a `git archive` copy (GitButler's working tree holds every applied branch and
+  uncommitted edits), tests run on stable and nightly, the type check runs capped at 1 GB (it peaked at 221 MB), and
+  gitleaks scans every commit not on main. CI's PR title check has no PR to read at push time, so the hook checks
+  the pushed commit subjects with the same `check:title`. `mise run setup`
   sets `core.hooksPath`, the one hook location both `git push` and `but push` run (GitButler's `pre_push()` runs only
   a hook file, never a git-config hook: `crates/gitbutler-repo/src/hooks.rs` at 2d95f37). That needs a GitButler
   build that keeps its own guard hooks in git config (gitbutlerapp/gitbutler#14698, nightly until the next release):

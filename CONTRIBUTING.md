@@ -9,14 +9,16 @@ in CI.
 
 ```sh
 mise run setup            # once per clone: pushes run the checks first
-mise run check:all        # every check CI runs, except the type check (CI only: it's heavy)
+mise run check:all        # every check CI runs, except the type check (check:types)
 mise run check:test       # the tests; NVIM=nightly mise run check:test for nightly
 mise run fmt              # format with stylua
 mise tasks                # everything else
 ```
 
 Hooks don't come with a clone, so `mise run setup` points git at `.githooks/` (`core.hooksPath`). Its pre-push hook
-runs `check:all`'s checks, with gitleaks on just the pushed commits, for `git push` and `but push` alike. With
+runs every CI check on each pushed commit's own files, for `git push` and `but push` alike, so a push that passes
+it passes CI. It takes about 7 seconds; the only CI check it can't run is the PR title's, so it checks the pushed
+commits' subjects against the same rule instead. With
 GitButler, use a build that keeps its own hooks in git config (nightly, until a release has
 [gitbutlerapp/gitbutler#14698](https://github.com/gitbutlerapp/gitbutler/pull/14698)); setup tells you if yours
 doesn't.

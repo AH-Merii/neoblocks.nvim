@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
-# Runs CI's checks before a push: on the working tree, then gitleaks on the commits
-# the push adds. git and GitButler (`but push`) both run it through core.hooksPath,
-# which `mise run setup` sets; --no-verify skips it.
+# Runs CI's checks (.github/workflows/ci.yml) on what a push sends, so a push that
+# passes here passes CI. git and GitButler (`but push`) both run it through
+# core.hooksPath, which `mise run setup` sets; --no-verify skips it.
+#
+# Each pushed commit is checked in a copy of its own files, not the working tree:
+# GitButler's working tree holds every applied branch and uncommitted edits. Like CI,
+# it tests on Neovim stable and nightly, and checks commit subjects with check:title
+# (CI checks the PR title, which squash merges take from them). gitleaks scans every
+# commit not yet on main: any PR's commits are among them.
 # Git passes "<local ref> <local sha> <remote ref> <remote sha>" lines on stdin.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
@@ -10,15 +16,48 @@ remote=$1
 refs=0 tips=()
 while read -r _ sha _ _; do
   refs=$((refs + 1))
-  # An all-zero sha deletes the remote branch: nothing to scan.
+  # An all-zero sha deletes the remote branch: nothing to check.
   [[ $sha =~ ^0+$ ]] || tips+=("$sha")
 done
-# No ref lines (a tool that doesn't pass them): scan everything unpushed instead.
+# No ref lines (a tool that doesn't pass them): check HEAD instead.
 [ "$refs" -gt 0 ] || tips=(HEAD)
-
-# As check:all: the type check is left to CI, it's too heavy to run locally.
-mise run -q check:fmt ::: check:lint ::: check:test ::: check:docs ::: check:workflows </dev/null
 [ ${#tips[@]} -gt 0 ] || exit 0
 
-# What the push adds: commits not yet on any of the remote's branches.
-exec mise run -q check:secrets "${tips[@]}" --not --remotes="$remote" </dev/null
+# What the push adds over main (everything, before main exists on the remote).
+new=("${tips[@]}")
+git rev-parse -q --verify "$remote/main" >/dev/null && new+=(--not "$remote/main")
+
+git log --format=%s "${new[@]}" | while IFS= read -r subject; do
+  out=$(mise run -q check:title "$subject" </dev/null) || { echo "$out" >&2; exit 1; }
+done
+mise run -q check:secrets "${new[@]}" </dev/null
+
+# zizmor's online audits, which CI runs with its token.
+GH_TOKEN=${GH_TOKEN:-$(gh auth token 2>/dev/null || true)}
+export GH_TOKEN
+# The type check is lua-language-server; capped where systemd is there to cap it.
+cap=()
+if systemd-run --user --scope -q true 2>/dev/null; then
+  cap=(systemd-run --user --scope -q -p MemoryMax=1G -p MemorySwapMax=0 --)
+fi
+
+export TMPDIR=${XDG_CACHE_HOME:-$HOME/.cache}/neoblocks
+mkdir -p "$TMPDIR"
+for tip in "${tips[@]}"; do
+  copy=$(mktemp -d)
+  trap 'rm -rf "$copy"' EXIT
+  git archive "$tip" | tar -x -C "$copy"
+  (
+    cd "$copy"
+    git init -q # actionlint looks for the repo root
+    export MISE_TRUSTED_CONFIG_PATHS=$copy
+    mise run -q check:fmt ::: check:lint ::: check:docs ::: check:workflows </dev/null
+    NVIM=0.12.6 mise run -q check:test </dev/null
+    NVIM=nightly mise run -q check:test </dev/null
+    "${cap[@]}" mise run -q check:types </dev/null
+  ) || {
+    echo "pre-push: $(git log -1 --format='%h %s' "$tip") fails the checks above" >&2
+    exit 1
+  }
+  rm -rf "$copy"
+done
