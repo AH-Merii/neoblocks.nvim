@@ -1,0 +1,3 @@
+# Checks are file tasks in mise-tasks/; each declares its own tools in its #MISE header, so adding a check never
+# edits this file. `mise run check:<name>` runs one the way CI does; `mise run check` runs them all.
+min_version = "2026.10.6"

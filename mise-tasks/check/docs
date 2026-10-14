@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#MISE description="Generate the docs into a scratch folder and check :helptags accepts them"
+#MISE tools={neovim="0.12.6"}
+# Not a staleness check: the docs bot regenerates and commits them after each merge to main. This catches a
+# generator that fails or help with broken or duplicate tags (E154) before then.
+set -euo pipefail
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+nvim --clean -l scripts/docs.lua "$work"
+nvim --clean --headless -c "try | helptags $work/doc | catch | cquit 1 | endtry" -c 'qa!' 2>&1
+echo "helptags: ok ($(wc -l <"$work/doc/tags") tags)"

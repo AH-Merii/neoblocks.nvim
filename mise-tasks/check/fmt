@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Check the Lua formatting (stylua); `mise run fmt` fixes it"
+#MISE tools={stylua="2.6.0"}
+set -euo pipefail
+stylua --check .

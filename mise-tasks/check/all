@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+#MISE description="Run every check CI runs, except the type check (heavy: CI only) and the title check (PR only)"
+#MISE depends=["check:fmt", "check:lint", "check:test", "check:docs", "check:secrets", "check:workflows"]

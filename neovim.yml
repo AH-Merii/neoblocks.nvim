@@ -1,0 +1,17 @@
+# selene's standard library for Neovim Lua: Lua 5.1 (LuaJIT) plus the globals Neovim and our test harness define.
+base: lua51
+globals:
+  vim:
+    any: true
+  jit:
+    any: true
+  Neoblocks:
+    any: true
+  test:
+    any: true
+  eq:
+    any: true
+  ok:
+    any: true
+  fresh:
+    any: true

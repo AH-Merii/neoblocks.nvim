@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#MISE description="Type-check the Lua against Neovim's runtime (lua-language-server); heavy, so CI runs it"
+#MISE tools={"lua-language-server"="3.19.2", neovim="0.12.6", jq="1.8.1"}
+# The settings are .luarc.json's. The docs are generated first, since lua/neoblocks/types.lua (the setup() options
+# of every module) comes from them and the bot only commits it after a merge.
+set -euo pipefail
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+nvim --clean -l scripts/docs.lua >/dev/null
+VIMRUNTIME=$(nvim --clean --headless -c 'lua io.write(vim.env.VIMRUNTIME)' -c q)
+export VIMRUNTIME
+lua-language-server --check "$PWD" --checklevel=Warning --logpath "$work" --check_out_path "$work/check.json"
+if [ -s "$work/check.json" ] && [ "$(jq 'length' "$work/check.json")" != 0 ]; then
+  jq -r 'to_entries[] | .key as $f | .value[] | "\($f):\(.range.start.line + 1): [\(.code)] \(.message)"' "$work/check.json"
+  exit 1
+fi

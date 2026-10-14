@@ -1,0 +1,55 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+# A later run regenerates from a newer main anyway, so an older one can stop.
+concurrency:
+  group: docs
+  cancel-in-progress: true
+
+# The docs are generated from the code (scripts/docs.lua): docs/, doc/neoblocks.txt, README.md's module table and
+# lua/neoblocks/types.lua. After each push to main this regenerates them and, when they changed, commits them to main
+# as the neoblocks-docs GitHub App, which the main ruleset lets past. The App can only write contents, to this repo;
+# its own pushes run this again, which finds nothing to commit and stops.
+
+jobs:
+  docs:
+    name: Regenerate and commit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - id: token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.DOCS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
+        with:
+          version: 2026.10.8
+      - run: mise run docs
+      - name: Commit and push when the docs changed
+        env:
+          TOKEN: ${{ steps.token.outputs.token }}
+          SLUG: ${{ steps.token.outputs.app-slug }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "docs are up to date"
+            exit 0
+          fi
+          git status --short
+          id=$(GH_TOKEN=$TOKEN gh api "/users/${SLUG}%5Bbot%5D" --jq .id)
+          git config user.name "${SLUG}[bot]"
+          git config user.email "${id}+${SLUG}[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs: regenerate from the code"
+          git push "https://x-access-token:${TOKEN}@github.com/${REPO}.git" HEAD:main

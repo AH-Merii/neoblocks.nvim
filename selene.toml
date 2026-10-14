@@ -1,0 +1,9 @@
+std = "neovim"
+
+[lints]
+# a table holding both list items and keys is how Neovim's own APIs take options
+mixed_table = "allow"
+# stylua decides the layout, and it puts short functions on one line (collapse_simple_statement)
+multiple_statements = "allow"
+# deliberate: the Neoblocks global (lua/neoblocks/init.lua) and the test harness's helpers
+global_usage = "allow"

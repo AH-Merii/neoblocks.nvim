@@ -1,0 +1,132 @@
+name: CI
+
+on:
+  pull_request:
+  # Pushes to main rescan the full history for secrets, and recheck the merged result and the docs bot's commits.
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Each job runs one mise task from mise-tasks/check/, so a check runs the same way locally (`mise run check:<name>`)
+# and here. To add a check, add a task, a job below and one line to ci-ok's `needs:`.
+
+jobs:
+  fmt:
+    name: Format
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - &checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - &mise
+        uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
+        with:
+          version: 2026.10.8
+      - run: mise run check:fmt
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - *checkout
+      - *mise
+      - run: mise run check:lint
+
+  types:
+    name: Type check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - *checkout
+      - *mise
+      - run: mise run check:types
+
+  test:
+    name: Tests (Neovim ${{ matrix.nvim }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        nvim: ["0.12.6", nightly]
+    steps:
+      - *checkout
+      - *mise
+      - run: mise run check:test
+        env:
+          NVIM: ${{ matrix.nvim }}
+
+  docs:
+    name: Docs generate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - *checkout
+      - *mise
+      - run: mise run check:docs
+
+  title:
+    name: Conventional title
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - *checkout
+      - *mise
+      # A PR's title becomes its squash commit; on main, the commit that was pushed (e.g. the docs bot's).
+      - run: mise run check:title "${TITLE%%$'\n'*}"
+        env:
+          TITLE: ${{ github.event.pull_request.title || github.event.head_commit.message }}
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - *mise
+      # A PR scans only its own commits; a push to main (no PR base) scans everything.
+      - run: mise run check:secrets ${BASE_SHA:+"$BASE_SHA..$HEAD_SHA"}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+  workflows:
+    name: Workflow security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - *checkout
+      - *mise
+      # The token turns on zizmor's online audits; it stays read-only.
+      - run: mise run check:workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  # The only check the main ruleset requires: it passes only when every check job passed.
+  ci-ok:
+    name: ci-ok
+    if: always()
+    needs: [fmt, lint, types, test, docs, title, secrets, workflows]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every check job to pass
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "results: $RESULTS"
+          for result in $RESULTS; do
+            [ "$result" = success ] || exit 1
+          done

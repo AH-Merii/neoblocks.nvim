@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#MISE description="Check a pull request title is a Conventional Commit, as squash merges use it for the commit"
+#USAGE arg "<title>" help="The title; CI passes the PR's"
+# release-please reads these titles to pick the next version and write the changelog. The scope is a module name, or
+# core, ci, docs, deps; it may be left out for changes across the repo.
+set -euo pipefail
+title=$1
+re='^(feat|fix|perf|refactor|style|test|docs|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: [^A-Z ].*[^.]$'
+if [[ ! $title =~ $re ]]; then
+  echo "::error::not a Conventional Commit title: \"$title\""
+  echo "expected: type(scope): description, e.g. \"fix(colors): a swatch follows its color when the line changes\""
+  exit 1
+fi
+echo "ok: $title"
