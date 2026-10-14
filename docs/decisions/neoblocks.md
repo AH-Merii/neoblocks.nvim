@@ -29,7 +29,8 @@ Compared against snacks.nvim (882c996) and AH-Merii/claude-plugins on 2026-10-14
 - Our own generator, not snacks' (721 lines over treesitter, then pandoc through panvimdoc in CI): ours reads a few
   fixed conventions line by line, writes vimdoc itself, and needs nothing but Neovim.
 - After each push to main, `docs.yml` regenerates and commits as the neoblocks-docs GitHub App, which the main ruleset
-  lets past. The App has contents write on this repo only. PRs run `check:docs`, which generates into a scratch
+  lets past. The App is installed on this repo only; each workflow asks for just the permissions it uses (contents
+  write here). PRs run `check:docs`, which generates into a scratch
   folder and checks `:helptags` accepts it; they don't need to commit the generated files.
 
 ## 3. Checks are mise tasks; CI runs each as a job
@@ -46,6 +47,9 @@ Compared against snacks.nvim (882c996) and AH-Merii/claude-plugins on 2026-10-14
 ## 4. One version, from release-please
 
 - Conventional Commit PR titles (squash merges) drive release-please; merging its PR tags `vX.Y.Z`.
+- release-please runs as the neoblocks-docs App (contents, issues and pull requests write), so CI runs on its release
+  PR and it merges like any other. A PR opened with `GITHUB_TOKEN` gets CI only after someone approves the runs
+  (GitHub changelog, 2026-06-11: "Bot-created pull requests can run workflows if approved").
 - One version for the repo, not one per module: lazy.nvim's `version` only reads tags like `v1.2.3`
   (`lazy/manage/semver.lua:86`), so per-module tags (`colors-v0.1.0`) would be invisible to it.
 - The version is also written to `M.version` in `lua/neoblocks/init.lua`, shown by `:checkhealth neoblocks`.

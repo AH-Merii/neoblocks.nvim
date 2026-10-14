@@ -18,12 +18,21 @@ concurrency:
 jobs:
   release-please:
     name: Release PR and tags
-    # Granted to this job only; other jobs added later start with none.
-    permissions:
-      contents: write # push the release branch, tags and GitHub releases
-      issues: write # label the release PR (labels go through the issues API)
-      pull-requests: write # open and update the release PR
+    # Everything goes through the App's token below, so GITHUB_TOKEN gets nothing.
+    permissions: {}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
+      # The release PR is opened as the neoblocks-docs App: GitHub holds CI on a PR opened with GITHUB_TOKEN until
+      # someone approves it (github.blog/changelog/2026-06-11-bot-created-pull-requests-can-run-workflows-if-approved).
+      - id: token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.DOCS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
+          permission-contents: write # push the release branch, tags and GitHub releases
+          permission-issues: write # label the release PR (labels go through the issues API)
+          permission-pull-requests: write # open and update the release PR
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ steps.token.outputs.token }}
