@@ -1,7 +1,6 @@
-# neoblocks.nvim
+<h1 align="center"><img src="assets/neoblocks-wordmark.svg" alt="Neoblocks" width="600"></h1>
 
-Hand-rolled replacements for Neovim plugins, built to stay out of the way: each module does what we used from the
-plugin it replaces, and costs nothing while it's off. A module isn't loaded until `setup()` names it.
+<p align="center">Small, fast replacements for Neovim plugins, each off until you turn it on.</p>
 
 ## Modules
 
@@ -14,7 +13,7 @@ plugin it replaces, and costs nothing while it's off. A module isn't loaded unti
 
 ## Install
 
-With [lazy.nvim](https://github.com/folke/lazy.nvim):
+Neovim 0.12 or newer. With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
@@ -27,23 +26,18 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 }
 ```
 
-Neovim 0.12 or newer. `:checkhealth neoblocks` shows what's on. `:Neoblocks[!] {module} {on|off|toggle}` switches a
-module on or off, everywhere or (with `!`) in the current buffer; `:h neoblocks` has the rest.
+A module you don't name is never loaded.
 
-## Docs
+## Usage
 
-The docs are generated from the code: each module's top comment, options and annotated functions become
-`docs/<module>.md`, `:h neoblocks` and the table above (`scripts/docs.lua`). A bot commits them after each merge to
-main, so don't edit those files by hand: change the code's comments.
+- `:Neoblocks {module} {on|off|toggle}` switches a module on or off; `:Neoblocks!` does it in the current buffer only.
+- `:checkhealth neoblocks` shows which modules are on.
+- `:h neoblocks`, or [docs/](docs/neoblocks.md), has each module's options and API.
 
-## Development
+## Contributing
 
-Every check is a [mise](https://mise.jdx.dev) task and runs the same way locally and in CI:
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-```sh
-mise run setup            # once: install the pre-push secret scan
-mise run check:test       # tests, on the Neovim from mise.toml
-mise run check:lint       # stylua and selene
-mise run docs             # regenerate the docs
-mise tasks                # everything else
-```
+## License
+
+[MIT](LICENSE)
