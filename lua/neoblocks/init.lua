@@ -8,7 +8,7 @@
 ---@class Neoblocks: neoblocks.modules
 local M = {}
 
-M.version = "0.0.0" -- x-release-please-version
+M.version = "0.1.0" -- x-release-please-version
 
 setmetatable(M, {
   __index = function(t, k)
