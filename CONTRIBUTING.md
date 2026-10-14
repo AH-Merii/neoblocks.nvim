@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/neoblocks-wordmark.svg" alt="Neoblocks" width="300"></p>
+
 # Contributing
 
 ## Setup
