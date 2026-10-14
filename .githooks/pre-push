@@ -1,29 +1,18 @@
 #!/usr/bin/env bash
-# Runs CI's checks (.github/workflows/ci.yml) on what a push sends, so a push that
-# passes here passes CI. git and GitButler (`but push`) both run it through
-# core.hooksPath, which `mise run setup` sets; --no-verify skips it.
-#
-# Each pushed commit is checked in a copy of its own files, not the working tree:
-# GitButler's working tree holds every applied branch and uncommitted edits. Like CI,
-# it tests on Neovim stable and nightly, and checks commit subjects with check:title
-# (CI checks the PR title, which squash merges take from them). gitleaks scans every
-# commit not yet on main: any PR's commits are among them.
-# Git passes "<local ref> <local sha> <remote ref> <remote sha>" lines on stdin.
+# Runs CI's checks on each pushed commit, so a push that passes here passes CI.
+# `mise run setup` installs it; git and `but push` both run it.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 remote=$1
-refs=0 tips=()
+tips=()
 while read -r _ sha _ _; do
-  refs=$((refs + 1))
   # An all-zero sha deletes the remote branch: nothing to check.
   [[ $sha =~ ^0+$ ]] || tips+=("$sha")
 done
-# No ref lines (a tool that doesn't pass them): check HEAD instead.
-[ "$refs" -gt 0 ] || tips=(HEAD)
 [ ${#tips[@]} -gt 0 ] || exit 0
 
-# What the push adds over main (everything, before main exists on the remote).
+# Commits not on main yet; their subjects stand in for the PR title CI checks.
 new=("${tips[@]}")
 git rev-parse -q --verify "$remote/main" >/dev/null && new+=(--not "$remote/main")
 
@@ -32,10 +21,10 @@ git log --format=%s "${new[@]}" | while IFS= read -r subject; do
 done
 mise run -q check:secrets "${new[@]}" </dev/null
 
-# zizmor's online audits, which CI runs with its token.
+# For zizmor's online audits, as in CI.
 GH_TOKEN=${GH_TOKEN:-$(gh auth token 2>/dev/null || true)}
 export GH_TOKEN
-# The type check is lua-language-server; capped where systemd is there to cap it.
+# Caps the type check's memory where systemd can.
 cap=()
 if systemd-run --user --scope -q true 2>/dev/null; then
   cap=(systemd-run --user --scope -q -p MemoryMax=1G -p MemorySwapMax=0 --)
@@ -44,6 +33,7 @@ fi
 export TMPDIR=${XDG_CACHE_HOME:-$HOME/.cache}/neoblocks
 mkdir -p "$TMPDIR"
 for tip in "${tips[@]}"; do
+  # A copy of the commit's files: GitButler's working tree mixes in other branches.
   copy=$(mktemp -d)
   trap 'rm -rf "$copy"' EXIT
   git archive "$tip" | tar -x -C "$copy"
