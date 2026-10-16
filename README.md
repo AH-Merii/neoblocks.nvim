@@ -8,6 +8,7 @@
 
 | Module | What it does |
 | --- | --- |
+| [statusline](docs/statusline.md) | A global statusline rebuilt only on events (replaces lualine.nvim) |
 
 <!-- modules:end -->
 
