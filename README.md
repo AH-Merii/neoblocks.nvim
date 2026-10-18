@@ -8,6 +8,7 @@
 
 | Module | What it does |
 | --- | --- |
+| [messages](docs/messages.md) | ui2 with noice's cmdline popup, toasts and long output in a split (replaces noice.nvim) |
 | [statusline](docs/statusline.md) | A global statusline rebuilt only on events (replaces lualine.nvim) |
 
 <!-- modules:end -->
