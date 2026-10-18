@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-#MISE description="Audit the GitHub Actions workflows: security (zizmor) and correctness (actionlint)"
-#MISE tools={zizmor="1.30.1", actionlint="1.7.12"}
+#MISE description="Audit the GitHub Actions workflows: security (zizmor) and correctness (jactionlint)"
+#MISE tools={"aqua:zizmorcore/zizmor"="1.30.1", "github:jdx/jactionlint"="2.2.0"}
 #USAGE arg "[path]..." help="Files or folders for zizmor; default: the repo root, which covers .github/"
 # zizmor catches unpinned actions, template injection and over-broad GITHUB_TOKEN permissions; with GH_TOKEN set
-# (CI sets it, read-only) it also checks each pinned SHA belongs to the action it names. actionlint catches
-# expression, shell and schema mistakes.
+# (CI sets it, read-only) it also checks each pinned SHA belongs to the action it names. jactionlint, a fork of
+# actionlint run the same way, catches expression, shell and schema mistakes, plus security and policy rules.
 set -euo pipefail
 rc=0
 [ $# -gt 0 ] || set -- .
 zizmor "$@" || rc=1
-actionlint || rc=1
+jactionlint || rc=1
 exit "$rc"

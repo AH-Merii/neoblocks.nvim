@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #MISE description="Type-check the Lua against Neovim's runtime (lua-language-server); CI and the pre-push hook run it"
-#MISE tools={"lua-language-server"="3.19.2", "github:neovim/neovim"="nightly", jq="1.8.1"}
+#MISE tools={"aqua:LuaLS/lua-language-server"="3.19.2", "github:neovim/neovim"="nightly", "aqua:jqlang/jq"="1.8.1"}
 # The settings are .luarc.json's. The docs are generated first, since lua/neoblocks/types.lua (the setup() options
 # of every module) comes from them and the bot only commits it after a merge.
 set -euo pipefail

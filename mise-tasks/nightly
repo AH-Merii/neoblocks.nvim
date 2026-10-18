@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#MISE description="Reinstall Neovim nightly, so local checks run on the build CI installs"
+# mise installs the nightly tag once and keeps it, while each CI job installs a fresh one. Run this when CI and a
+# local check disagree, or every few days.
+set -euo pipefail
+# -q: mise would warn that no config file lists this tool; the check tasks name it in their #MISE headers.
+mise install -q --force github:neovim/neovim@nightly
+mise exec github:neovim/neovim@nightly -- nvim --version | sed -n 1p

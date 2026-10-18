@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 #MISE description="Format the Lua files (stylua)"
-#MISE tools={stylua="2.6.0"}
+#MISE tools={"aqua:JohnnyMorganz/StyLua"="2.6.0"}
 set -euo pipefail
 stylua .

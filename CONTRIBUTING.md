@@ -11,9 +11,13 @@ in CI.
 mise run setup            # once per clone: pushes run the checks first
 mise run check:all        # every check CI runs, except the type check (check:types)
 mise run check:test       # the tests, on Neovim nightly
+mise run nightly          # reinstall Neovim nightly, as each CI job does
 mise run fmt              # format with stylua
 mise tasks                # everything else
 ```
+
+mise installs Neovim nightly once and keeps that build, while CI installs the latest in every job. When a check
+passes locally but fails in CI, or the other way round, `mise run nightly` brings your build up to CI's.
 
 Hooks don't come with a clone, so `mise run setup` points git at `.githooks/` (`core.hooksPath`). Its pre-push hook
 runs every CI check on each pushed commit's own files, for `git push` and `but push` alike, so a push that passes
