@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.0](https://github.com/AH-Merii/neoblocks.nvim/compare/v0.2.0...v0.3.0) (2026-10-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* support Neovim 0.13 (nightly) only ([#11](https://github.com/AH-Merii/neoblocks.nvim/issues/11))
+
+### Features
+
+* **messages:** ui2 with noice's cmdline popup, toasts and output split ([#14](https://github.com/AH-Merii/neoblocks.nvim/issues/14)) ([74e7e44](https://github.com/AH-Merii/neoblocks.nvim/commit/74e7e44e48e4f5b4d66074980b19a7c56a784ce3))
+
+
+### Bug Fixes
+
+* tests run by the pre-push hook never touch the pushing repo ([#13](https://github.com/AH-Merii/neoblocks.nvim/issues/13)) ([9f653fe](https://github.com/AH-Merii/neoblocks.nvim/commit/9f653fe0bed2a85f1b81552657759e3fd9869f7c))
+
+
+### Miscellaneous Chores
+
+* support Neovim 0.13 (nightly) only ([#11](https://github.com/AH-Merii/neoblocks.nvim/issues/11)) ([fd9c02f](https://github.com/AH-Merii/neoblocks.nvim/commit/fd9c02fcf733b271d79aad9b6f3dd8a427c8bc74))
+
 ## [0.2.0](https://github.com/AH-Merii/neoblocks.nvim/compare/v0.1.0...v0.2.0) (2026-10-16)
 
 
