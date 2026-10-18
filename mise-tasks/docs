@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 #MISE description="Regenerate the docs from the code (docs/, doc/neoblocks.txt, README's module table, types.lua)"
-#MISE tools={neovim="nightly"}
+#MISE tools={"github:neovim/neovim"="nightly"}
 set -euo pipefail
 nvim --clean -l scripts/docs.lua

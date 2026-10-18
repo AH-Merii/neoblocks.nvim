@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #MISE description="Run the tests (tests/run.lua) on Neovim nightly"
-#MISE tools={neovim="nightly"}
+#MISE tools={"github:neovim/neovim"="nightly"}
 #USAGE arg "[name]..." help="Spec files whose name contains one of these; default: all"
 # Each spec file runs in its own `nvim --clean`, offline.
 set -euo pipefail
