@@ -42,8 +42,7 @@ for tip in "${tips[@]}"; do
     git init -q # actionlint looks for the repo root
     export MISE_TRUSTED_CONFIG_PATHS=$copy
     mise run -q check:fmt ::: check:lint ::: check:docs ::: check:workflows </dev/null
-    NVIM=0.12.6 mise run -q check:test </dev/null
-    NVIM=nightly mise run -q check:test </dev/null
+    mise run -q check:test </dev/null
     "${cap[@]}" mise run -q check:types </dev/null
   ) || {
     echo "pre-push: $(git log -1 --format='%h %s' "$tip") fails the checks above" >&2

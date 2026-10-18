@@ -52,7 +52,11 @@ local function parse(path, name, prefix)
       pending[#pending + 1] = (line:gsub("^%-%-%- ?", ""))
     else
       local fname, params = line:match("^function M%.([%w_]+)(%b())")
-      if fname and #pending > 0 and not vim.iter(pending):any(function(p) return p:match("^@private") end) then
+      local private = false
+      for _, p in ipairs(pending) do
+        private = private or p:match("^@private") ~= nil
+      end
+      if fname and #pending > 0 and not private then
         local fn = { name = fname, params = params, desc = {}, args = {}, returns = {} } ---@type neoblocks.docs.Fn
         for _, p in ipairs(pending) do
           local tag, rest = p:match("^@(%w+)%s*(.*)$")

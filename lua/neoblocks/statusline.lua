@@ -408,10 +408,7 @@ local builtins = {
     events = { "Progress" },
     -- it starts tracking Progress events on its first call
     init = function() vim.ui.progress_status() end,
-    text = function()
-      -- 0.12 returns "40%%(1) ", nightly "40%(1)"
-      return escape(vim.trim((vim.ui.progress_status():gsub("%%%%", "%%"))))
-    end,
+    text = function() return escape(vim.ui.progress_status()) end,
   },
   recording = {
     events = { "RecordingEnter", "RecordingLeave" },
@@ -760,6 +757,16 @@ end
 
 local function comps() return vim.list_extend(vim.list_slice(S.left), S.right) end
 
+---@param pred fun(c: neoblocks.statusline.Comp): boolean
+local function any_comp(pred)
+  for _, c in ipairs(comps()) do
+    if pred(c) then
+      return true
+    end
+  end
+  return false
+end
+
 ---@param config neoblocks.statusline.Config
 local function autocmds(config)
   local group = api.nvim_create_augroup("neoblocks.statusline", { clear = true })
@@ -798,7 +805,7 @@ local function autocmds(config)
       report(("events: %s"):format(err))
     end
   end
-  if vim.iter(comps()):any(function(c) return c.var ~= nil end) then
+  if any_comp(function(c) return c.var ~= nil end) then
     -- only the count, only while a search is highlighted (decision 6), and at most once per 16 ms: a scroll
     -- animation moves the cursor more often than that
     api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
@@ -886,11 +893,10 @@ end
 function M.health()
   local h = vim.health
   h.ok(("%d components on the left, %d on the right"):format(#S.left, #S.right))
-  if vim.iter(comps()):any(function(c) return c.builtin == builtins.diff end) then
+  if any_comp(function(c) return c.builtin == builtins.diff end) then
     -- installed but not loaded yet (lazy-loaded): gitsigns ships lua/gitsigns.lua
-    local installed = vim
-      .iter({ "lua/gitsigns.lua", "lua/gitsigns/init.lua" })
-      :any(function(f) return #api.nvim_get_runtime_file(f, false) > 0 end)
+    local installed = #api.nvim_get_runtime_file("lua/gitsigns.lua", false) > 0
+      or #api.nvim_get_runtime_file("lua/gitsigns/init.lua", false) > 0
     if package.loaded.gitsigns or installed then
       h.ok("diff: gitsigns.nvim found")
     else

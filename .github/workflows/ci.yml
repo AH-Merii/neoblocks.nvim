@@ -51,19 +51,13 @@ jobs:
       - run: mise run check:types
 
   test:
-    name: Tests (Neovim ${{ matrix.nvim }})
+    name: Tests
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        nvim: ["0.12.6", nightly]
     steps:
       - *checkout
       - *mise
       - run: mise run check:test
-        env:
-          NVIM: ${{ matrix.nvim }}
 
   docs:
     name: Docs generate

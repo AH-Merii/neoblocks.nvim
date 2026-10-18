@@ -7,10 +7,10 @@ function M.check()
   local nb = require("neoblocks")
   health.start("neoblocks")
   health.info("version " .. nb.version)
-  if vim.fn.has("nvim-0.12") == 1 then
+  if vim.fn.has("nvim-0.13") == 1 then
     health.ok("Neovim " .. tostring(vim.version()))
   else
-    health.error("Neovim 0.12 or newer is needed, found " .. tostring(vim.version()))
+    health.error("Neovim 0.13 (nightly) or newer is needed, found " .. tostring(vim.version()))
   end
   if nb.did_setup then
     health.ok("setup() called")
