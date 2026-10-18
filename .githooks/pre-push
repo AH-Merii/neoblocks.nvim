@@ -45,9 +45,10 @@ for tip in "${tips[@]}"; do
     cd "$copy"
     git init -q # actionlint looks for the repo root
     export MISE_TRUSTED_CONFIG_PATHS=$copy
-    mise run -q check:fmt ::: check:lint ::: check:docs ::: check:workflows </dev/null
-    mise run -q check:test </dev/null
-    "${cap[@]}" mise run -q check:types </dev/null
+    # `set -e` doesn't apply inside `( ... ) ||`, so each check is chained: a failed one stops the push
+    mise run -q check:fmt ::: check:lint ::: check:docs ::: check:workflows </dev/null &&
+      mise run -q check:test </dev/null &&
+      "${cap[@]}" mise run -q check:types </dev/null
   ) || {
     echo "pre-push: $(git log -1 --format='%h %s' "$tip") fails the checks above" >&2
     exit 1
