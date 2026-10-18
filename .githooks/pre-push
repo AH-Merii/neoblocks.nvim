@@ -48,7 +48,7 @@ for tip in "${tips[@]}"; do
   git archive "$tip" | tar -x -C "$copy"
   (
     cd "$copy"
-    git init -q # actionlint looks for the repo root
+    git init -q # jactionlint looks for the repo root
     export MISE_TRUSTED_CONFIG_PATHS=$copy
     # `set -e` doesn't apply inside `( ... ) ||`, so each check is chained: a failed one stops the push
     mise run -q check:fmt ::: check:lint ::: check:docs ::: check:workflows </dev/null &&

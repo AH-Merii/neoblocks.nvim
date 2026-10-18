@@ -39,7 +39,7 @@ Compared against snacks.nvim (882c996) and AH-Merii/claude-plugins on 2026-10-14
   job per task and a `ci-ok` job that passes only when all did, the one check the main ruleset requires.
 - Checks: stylua, selene (plus no debug output in `lua/`/`plugin/`, as snacks' `dd(` check), lua-language-server (in CI
   and the pre-push hook, not `check:all`), tests on Neovim nightly, the docs generator, the PR title, gitleaks
-  and zizmor + actionlint.
+  and zizmor + jactionlint.
 - Tests: `nvim -l tests/run.lua`, no dependencies and offline; each spec file runs in its own `nvim --clean`. snacks'
   runner downloads lazy.nvim when it isn't installed (`tests/minit.lua:6-10`).
 - Wrong-implementation checks are kept outside the repo, as evidence the tests catch real bugs.
