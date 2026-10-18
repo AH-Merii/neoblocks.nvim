@@ -49,6 +49,10 @@ jobs:
       - *checkout
       - *mise
       - run: mise run check:types
+        # mise's github backend fetches Neovim nightly through GitHub's API; without a token the shared runners hit the
+        # anonymous rate limit (HTTP 403)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   test:
     name: Tests
@@ -58,6 +62,10 @@ jobs:
       - *checkout
       - *mise
       - run: mise run check:test
+        # mise's github backend fetches Neovim nightly through GitHub's API; without a token the shared runners hit the
+        # anonymous rate limit (HTTP 403)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   docs:
     name: Docs generate
@@ -67,6 +75,10 @@ jobs:
       - *checkout
       - *mise
       - run: mise run check:docs
+        # mise's github backend fetches Neovim nightly through GitHub's API; without a token the shared runners hit the
+        # anonymous rate limit (HTTP 403)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   title:
     name: Conventional title
