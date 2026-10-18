@@ -16,6 +16,14 @@ while read -r _ sha _ _; do
 done
 [ ${#tips[@]} -gt 0 ] || exit 0
 
+# For zizmor's online audits, as in CI.
+GH_TOKEN=${GH_TOKEN:-$(gh auth token 2>/dev/null || true)}
+export GH_TOKEN
+# mise's GitHub API calls (tool installs, e.g. Neovim nightly) read MISE_GITHUB_TOKEN or GITHUB_TOKEN, never GH_TOKEN
+# (https://mise.jdx.dev/dev-tools/github-tokens.html). Left unset when empty, so mise can still find a token elsewhere.
+MISE_GITHUB_TOKEN=${MISE_GITHUB_TOKEN:-$GH_TOKEN}
+[ -z "$MISE_GITHUB_TOKEN" ] || export MISE_GITHUB_TOKEN
+
 # Commits not on main yet; their subjects stand in for the PR title CI checks.
 new=("${tips[@]}")
 git rev-parse -q --verify "$remote/main" >/dev/null && new+=(--not "$remote/main")
@@ -25,9 +33,6 @@ git log --format=%s "${new[@]}" | while IFS= read -r subject; do
 done
 mise run -q check:secrets "${new[@]}" </dev/null
 
-# For zizmor's online audits, as in CI.
-GH_TOKEN=${GH_TOKEN:-$(gh auth token 2>/dev/null || true)}
-export GH_TOKEN
 # Caps the type check's memory where systemd can.
 cap=()
 if systemd-run --user --scope -q true 2>/dev/null; then
