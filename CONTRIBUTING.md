@@ -10,7 +10,7 @@ in CI.
 ```sh
 mise run setup            # once per clone: pushes run the checks first
 mise run check:all        # every check CI runs, except the type check (check:types)
-mise run check:test       # the tests; NVIM=nightly mise run check:test for nightly
+mise run check:test       # the tests, on Neovim nightly
 mise run fmt              # format with stylua
 mise tasks                # everything else
 ```

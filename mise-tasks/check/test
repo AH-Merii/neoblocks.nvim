@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-#MISE description="Run the tests (tests/run.lua) on Neovim stable, or on the version in $NVIM, e.g. nightly"
+#MISE description="Run the tests (tests/run.lua) on Neovim nightly"
+#MISE tools={neovim="nightly"}
 #USAGE arg "[name]..." help="Spec files whose name contains one of these; default: all"
-# Each spec file runs in its own `nvim --clean`, offline. CI runs this once per Neovim version.
+# Each spec file runs in its own `nvim --clean`, offline.
 set -euo pipefail
-exec mise exec "neovim@${NVIM:-0.12.6}" -- nvim -l tests/run.lua "$@"
+exec nvim -l tests/run.lua "$@"

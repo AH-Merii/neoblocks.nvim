@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #MISE description="Generate the docs into a scratch folder and check :helptags accepts them"
-#MISE tools={neovim="0.12.6"}
+#MISE tools={neovim="nightly"}
 # Not a staleness check: the docs bot regenerates and commits them after each merge to main. This catches a
 # generator that fails or help with broken or duplicate tags (E154) before then.
 set -euo pipefail

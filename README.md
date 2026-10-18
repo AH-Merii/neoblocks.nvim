@@ -14,7 +14,7 @@
 
 ## Install
 
-Neovim 0.12 or newer. With [lazy.nvim](https://github.com/folke/lazy.nvim):
+Neovim 0.13 (nightly) or newer. With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
