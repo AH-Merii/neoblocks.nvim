@@ -3,6 +3,10 @@
 # `mise run setup` installs it; git and `but push` both run it.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
+# git gives a hook GIT_DIR and others for the pushing repo; a check's own git (a `git init` in a scratch folder)
+# would then work on this repo. From here on, git finds the repo from the folder it runs in.
+# shellcheck disable=SC2046
+unset $(git rev-parse --local-env-vars)
 
 remote=$1
 tips=()

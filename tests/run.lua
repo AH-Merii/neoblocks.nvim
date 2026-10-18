@@ -5,6 +5,14 @@
 -- and returns a new require("neoblocks"), for a test that needs setup() again.
 local root = vim.fs.dirname(vim.fs.dirname(vim.fs.normalize(debug.getinfo(1, "S").source:sub(2))))
 
+-- A git hook (the pre-push one runs these tests) sets GIT_DIR, GIT_INDEX_FILE and others to the pushing repo; a
+-- spec's git in a scratch folder would then work on that repo instead (tests/runner_spec.lua).
+for name in pairs(vim.fn.environ()) do
+  if name:match("^GIT_") then
+    vim.env[name] = nil
+  end
+end
+
 if arg[1] == "--spec" then
   vim.opt.rtp:prepend(root)
   vim.cmd.runtime("plugin/neoblocks.lua")
