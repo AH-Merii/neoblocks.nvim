@@ -1084,7 +1084,14 @@ local function in_repos(top, gitsigns, body)
   local ok_, err = pcall(body)
   if gitsigns then
     require("gitsigns").detach_all()
-    pcall(vim.api.nvim_del_augroup_by_name, "gitsigns")
+    -- gitsigns' groups are "gitsigns" and "gitsigns.<part>" (its attach.lua:23); one left behind runs a later test's
+    -- BufFilePre with gitsigns unloaded
+    for _, au in ipairs(vim.api.nvim_get_autocmds({})) do
+      local name = au.group_name
+      if type(name) == "string" and (name == "gitsigns" or vim.startswith(name, "gitsigns.")) then
+        pcall(vim.api.nvim_del_augroup_by_id, au.group)
+      end
+    end
     vim.opt.rtp:remove(gitsigns_dir)
     for name in pairs(package.loaded) do
       if name == "gitsigns" or name:match("^gitsigns%.") then
