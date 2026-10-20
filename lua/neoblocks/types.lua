@@ -6,9 +6,11 @@
 ---@field health neoblocks.health
 ---@field meta neoblocks.meta
 ---@field util neoblocks.util
+---@field diagnostics neoblocks.diagnostics
 ---@field messages neoblocks.messages
 ---@field statusline neoblocks.statusline
 
 ---@class neoblocks.Config
+---@field diagnostics? neoblocks.diagnostics.Config|{ enabled?: boolean }
 ---@field messages? neoblocks.messages.Config|{ enabled?: boolean }
 ---@field statusline? neoblocks.statusline.Config|{ enabled?: boolean }
