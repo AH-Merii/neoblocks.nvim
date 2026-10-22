@@ -4,4 +4,28 @@
 #USAGE arg "[name]..." help="Spec files whose name contains one of these; default: all"
 # Each spec file runs in its own `nvim --clean`, offline.
 set -euo pipefail
+
+# The fastapi module parses Python with tree-sitter, and Neovim bundles no Python parser. Built once from
+# tree-sitter-python's release (checksum from its release assets), kept in the cache, passed to the specs.
+version=v0.25.0
+sha256=7bce887eb2f33e94bf74a69645cf5138d4096720e54fd3269a6124c06b93c584
+parsers=${XDG_CACHE_HOME:-$HOME/.cache}/neoblocks/parsers/python-$version
+if [ ! -f "$parsers/parser/python.so" ]; then
+  src=$(mktemp -d)
+  trap 'rm -rf "$src"' EXIT
+  curl -fsSL -o "$src/python.tar.gz" \
+    "https://github.com/tree-sitter/tree-sitter-python/releases/download/$version/tree-sitter-python.tar.gz"
+  if command -v sha256sum >/dev/null; then
+    echo "$sha256  $src/python.tar.gz" | sha256sum -c --quiet -
+  else
+    echo "$sha256  $src/python.tar.gz" | shasum -a 256 -c --quiet -
+  fi
+  tar -xzf "$src/python.tar.gz" -C "$src" src
+  mkdir -p "$parsers/parser"
+  "${CC:-cc}" -shared -fPIC -O2 -I "$src/src" "$src/src/parser.c" "$src/src/scanner.c" -o "$src/python.so"
+  mv "$src/python.so" "$parsers/parser/python.so"
+  rm -rf "$src" # the trap above doesn't run after exec
+fi
+export NEOBLOCKS_TEST_PARSERS=$parsers
+
 exec nvim -l tests/run.lua "$@"
