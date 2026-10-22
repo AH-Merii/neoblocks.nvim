@@ -9,6 +9,7 @@
 | Module | What it does |
 | --- | --- |
 | [diagnostics](docs/diagnostics.md) | Diagnostics in a pill after the cursor's line, counts elsewhere (replaces tiny-inline-diagnostic) |
+| [fastapi](docs/fastapi.md) | FastAPI routes in a picker, read from the code (replaces fastapi-vscode's route search) |
 | [messages](docs/messages.md) | ui2 with noice's cmdline popup, toasts and long output in a split (replaces noice.nvim) |
 | [statusline](docs/statusline.md) | A global statusline rebuilt only on events (replaces lualine.nvim) |
 
