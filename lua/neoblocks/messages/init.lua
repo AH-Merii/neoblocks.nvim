@@ -5,7 +5,7 @@
 --- - `:` and `input()` prompts in a bordered popup near the top, titled by the kind of command (Cmdline, Lua, Help,
 ---   Filter, Calculator or the prompt); blink.cmp's cmdline menu opens under it (`vim.g.ui_cmdline_pos`);
 --- - `/` and `?` over the last row, so the windows don't move;
---- - messages as snacks.notifier toasts: errors stay until dismissed, except a search or jump that found nothing;
+--- - messages as snacks.notifier toasts, each staying as long as snacks' `timeout` and `notifier.keep` say;
 ---   info merges into one toast; output taller than a toast opens in a split below that isn't entered (`q` closes it);
 ---   undo, quickfix, completion and verbose messages are left out, as noice left them out;
 --- - `history()`: every message since startup in a picker, newest first;
@@ -37,7 +37,14 @@
 ---
 --- The popup's border, title and icon are drawn in `NeoblocksMessagesBorder`, `NeoblocksMessagesTitle` and
 --- `NeoblocksMessagesIcon`, linked to `DiagnosticSignInfo` (noice's colour). A toast passes `routine = true` to
---- snacks for a routine error, so a snacks `notifier.keep` can let it time out.
+--- snacks for a routine error (a search or jump that found nothing), so a snacks `notifier.keep` that holds errors
+--- until dismissed can let the routine ones time out:
+---
+--- ```lua
+--- require("snacks").setup({
+---   notifier = { keep = function(n) return n.level == "error" and not n.routine or vim.fn.getcmdpos() > 0 end },
+--- })
+--- ```
 ---@class neoblocks.messages
 local M = {}
 

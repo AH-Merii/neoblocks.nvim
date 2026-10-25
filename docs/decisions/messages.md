@@ -16,8 +16,8 @@ From the config's decisions doc, unchanged:
    (`blink.cmp/lua/blink/cmp/config/completion/menu.lua:49-56`).
 2. `/` and `?` over the last row (noice's bottom_search). `confirm()`, `:s///c`, block mode and `input('')` stay with
    ui2.
-3. Messages as snacks.notifier toasts: errors stay (`timeout = 0`) except the routine "nothing found or at the edge"
-   codes, info merges into one toast, adjacent errors share one, titles are the typed command or noice's
+3. Messages as snacks.notifier toasts: errors stayed (`timeout = 0`) except the routine "nothing found or at the
+   edge" codes, until 10 left every toast's lifetime to snacks; info merges into one toast, adjacent errors share one, titles are the typed command or noice's
    Error/Warning/Messages; undo, quickfix, completion, verbose, shell_cmd and progress are left out.
 4. Output taller than a toast (counted as snacks sizes it, a typed command's output as a whole) opens in a split
    below that isn't entered; `q` closes it.
@@ -50,7 +50,8 @@ From the config's decisions doc, unchanged:
   own (a second notifier is a module of its own, not part of this move); `vim.notify` as the fallback toast: Neovim's
   default `vim.notify` is `nvim_echo`, whose message comes back to `msg_show` and so to this hook.
 - Kept from the config: a toast passes `routine = true` for a routine error, so a snacks `notifier.keep` that holds
-  errors can let it time out (the config's `ui/snacks.lua:53` reads `n.routine`).
+  errors can let it time out (the config's `ui/snacks.lua:53` read `n.routine`; since 10 it's the only thing that can
+  hold an error).
 
 ## 3. Neovim versions: nightly only
 
@@ -148,7 +149,7 @@ From the config's decisions doc, unchanged:
   and `tests/regress/work/ui2-noice/ui2_noice.sh` (the popup, `/`, `:echo` and error toasts and their titles, routine
   errors, undo left out, the split for 60 lines, 25 typed lines, a 25-message burst, a 31-line async message and
   wrapped lines, `g<`). Not ported: the tmux check's "still there after 4.5 s" and "gone after 4.5 s", which time
-  snacks' own timeout; the tests check the `timeout` the module passes instead. `<leader>N` dismissing toasts is the
+  snacks' own timeout; the tests check the `timeout` the module passes instead (none, since 10). `<leader>N` dismissing toasts is the
   config's key. Added: titles per kind, input prompts, `confirm()`, block mode, blink's position, the switch, a
   failing toast, the early replay, the history with and without snacks, a missing internal.
 - Added after the review of b7a88f6, each from a rule it found untested: `:w`'s toast and history entry from a real
@@ -205,11 +206,28 @@ side; the last column counts the rounds where this module's median was lower tha
 - Checked in each run: the cmdline held the typed text, `2j` reached line 200, a toast was on screen after the
   messages, and the long messages opened a split, for both noice and this module.
 
+## 10. How long a toast stays is snacks' to decide (2026-10-25)
+
+- Context: error toasts passed `timeout = 0` unless routine (`toasts.lua`, `opts.timeout = level == "error" and not
+  opts.routine and 0 or nil` before this change), and snacks keeps a toast with timeout 0 whatever its own `timeout` or
+  `notifier.keep` say (`snacks/notifier.lua:426-433`). nvim-config's user wanted errors to time out like every other
+  toast, as they did under noice, and its `notifier.keep` couldn't make them: the module overrode it.
+- Decided: the module passes no `timeout`, so snacks' `timeout` (3 s by default, `snacks/notifier.lua:113`) and
+  `notifier.keep` decide, for every level. It still passes `routine = true` for a routine error, so a config that wants
+  errors to stay writes `keep = function(n) return n.level == "error" and not n.routine end` (the module's doc
+  shows it). The lifetime rule then lives in one place, the user's snacks config.
+- A behaviour change for users: errors that stayed until dismissed now time out after snacks' `timeout` unless their
+  `notifier.keep` holds them. Released as a breaking change (`feat!`), which `bump-minor-pre-major` makes a minor bump
+  (`docs/decisions/neoblocks.md` 4).
+- Rejected: a module option such as `messages.errors = "stay" | "timeout"` (a second place deciding what snacks'
+  `keep` already decides, and one that overrides it); keeping `timeout = 0` and documenting it (the user's
+  `notifier.keep` and `timeout` can't let an error go; only dismissing it can).
+
 ## Known differences from noice
 
 The config's list (`docs/ui2-noice-parity-decisions.md`, "Known differences from noice") still holds: `:lua `,
 `:help ` and prompts stay visible; blink's labels sit one cell right of the typed text; long `:!` output shows when it
-ends; errors in a typed command's split output aren't sticky toasts; `confirm()`, `:s///c`, `:messages` and `g<` use
+ends; errors in a typed command's split output aren't toasts; `confirm()`, `:s///c`, `:messages` and `g<` use
 ui2's windows; icons need a Nerd Font.
 
 ## Probes
