@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/AH-Merii/neoblocks.nvim/compare/v0.3.0...v0.4.0) (2026-10-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* **messages:** snacks' timeout and notifier.keep decide how long an error toast stays ([#20](https://github.com/AH-Merii/neoblocks.nvim/issues/20))
+
+### Features
+
+* **diagnostics:** tiny-inline-diagnostic's look as a diagnostic handler ([#17](https://github.com/AH-Merii/neoblocks.nvim/issues/17)) ([34f96bc](https://github.com/AH-Merii/neoblocks.nvim/commit/34f96bc91fad586ad362928066466ddf48051d23))
+* **fastapi:** list a FastAPI project's routes in a picker ([#19](https://github.com/AH-Merii/neoblocks.nvim/issues/19)) ([12af343](https://github.com/AH-Merii/neoblocks.nvim/commit/12af3433b1505cade1e8f2eab5863584b4c0ff66))
+* **messages:** snacks' timeout and notifier.keep decide how long an error toast stays ([#20](https://github.com/AH-Merii/neoblocks.nvim/issues/20)) ([8ff9b06](https://github.com/AH-Merii/neoblocks.nvim/commit/8ff9b06544febf48f35b3b9d5ba48c9c10233c51))
+
 ## [0.3.0](https://github.com/AH-Merii/neoblocks.nvim/compare/v0.2.0...v0.3.0) (2026-10-18)
 
 
