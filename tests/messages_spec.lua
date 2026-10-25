@@ -458,12 +458,12 @@ test(":echo is one info toast titled with the command, not in ui2's window, and 
   end)
 end)
 
-test("an error stays until dismissed, unless it's routine: a search or jump that found nothing", function()
-  -- timeout 0 keeps a snacks toast (snacks/notifier.lua:31); nil is snacks' default 3 s. Titles: the typed command,
-  -- or noice's "Error" when no command was typed (a search)
+test("an error toast leaves its lifetime to snacks, marked routine when a search or jump found nothing", function()
+  -- No timeout: snacks' own timeout and notifier.keep decide (snacks/notifier.lua:390-392,426-433); 0 would keep it
+  -- whatever the user set. Titles: the typed command, or noice's "Error" when no command was typed (a search)
   local cases = {
-    { ":nosuchcmd<CR>", "E492", { title = ":nosuchcmd", timeout = 0, routine = false } },
-    { ":echo nosuchvar<CR>", "E121", { title = ":echo nosuchvar", timeout = 0, routine = false } },
+    { ":nosuchcmd<CR>", "E492", { title = ":nosuchcmd", routine = false } },
+    { ":echo nosuchvar<CR>", "E121", { title = ":echo nosuchvar", routine = false } },
     { "/nosuchtext<CR>", "E486", { title = "Error", routine = true } },
     { ":cnext<CR>", "E42", { title = ":cnext", routine = true } },
   }

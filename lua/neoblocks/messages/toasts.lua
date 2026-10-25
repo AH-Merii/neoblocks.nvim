@@ -1,5 +1,5 @@
--- noice-like message routing on top of ui2 (:h ui2). Messages become snacks.notifier toasts (errors stay
--- until dismissed, except routine search and navigation ones), output taller than a toast opens in a split
+-- noice-like message routing on top of ui2 (:h ui2). Messages become snacks.notifier toasts (how long each
+-- stays is snacks' timeout and notifier.keep), output taller than a toast opens in a split
 -- below (noice's long_message_to_split), and progress (a statusline shows it) and the kinds noice never showed
 -- (undo, quickfix, ...) are dropped. Without snacks.notifier set up, every message stays with ui2.
 -- Dialogs, search, block mode and the pager stay with ui2.
@@ -27,8 +27,8 @@ local passthrough = { confirm = true, search_cmd = true, search_count = true, em
 local quiet = { undo = true, quickfix = true, completion = true, verbose = true, shell_cmd = true }
 local levels =
   { emsg = "error", echoerr = "error", lua_error = "error", rpc_error = "error", shell_err = "error", wmsg = "warn" }
--- Routine errors: a search or jump that found nothing or hit an edge. Their toasts time out after snacks'
--- 3s like every noice toast did; all other errors stay until dismissed. Sources: :h <code>, in
+-- Routine errors: a search or jump that found nothing or hit an edge. Their toasts pass `routine = true`, so a
+-- snacks notifier.keep that holds errors can let them time out. Sources: :h <code>, in
 -- $VIMRUNTIME/doc/<file>:<line> (nightly v0.13.0-dev-1868).
 local routine = {} ---@type table<string, true>
 for _, codes in ipairs({
@@ -184,8 +184,8 @@ local function toast(es, level, opts)
   local lines, hls = render(es)
   opts.ft = "text" -- not snacks' markdown: "[New]" or "[C]" would be concealed as links
   opts.history = false -- snacks keys its history by id (snacks/notifier.lua:404-406); the ring is the history
-  -- 0 keeps it until dismissed (snacks/notifier.lua:31); `routine` lets a notifier.keep that holds errors skip it
-  opts.timeout = level == "error" and not opts.routine and 0 or nil
+  -- No timeout: how long a toast stays is snacks' timeout and notifier.keep (snacks/notifier.lua:426-433), the
+  -- user's to set. `routine` lets a notifier.keep that holds errors skip the routine ones.
   -- snacks calls this later from its timer, outside flush()'s pcall, and turns an error into an emsg
   -- (snacks/notifier.lua:333-345) that would come back here as another failing toast. So it catches its
   -- own errors, draws the plain text for snacks to size, and falls back to plain ui2.
